@@ -61,6 +61,8 @@ frame-benchmarking-cli = { version = "4.0.0-dev", git = "https://github.com/pari
 # Local Dependencies
 node-template-runtime = { version = "4.0.0-dev", path = "../runtime" }
 
+pallet-move-rpc = { version = "0.1.0", path = "../../pallet-move/rpc" }
+
 # CLI-specific dependencies
 try-runtime-cli = { version = "0.10.0-dev", optional = true, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
 

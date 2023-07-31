@@ -49,6 +49,9 @@ pub use sp_runtime::{Perbill, Permill};
 /// Import the template pallet.
 pub use pallet_template;
 
+/// Import the Move pallet.
+pub use pallet_move;
+
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -274,6 +277,12 @@ impl pallet_template::Config for Runtime {
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
 
+/// Configure the pallet-move.
+impl pallet_move::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -286,6 +295,8 @@ construct_runtime!(
 		Sudo: pallet_sudo,
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template,
+		// Include the custom logic from the pallet-move in the runtime.
+		MoveModule: pallet_move,
 	}
 );
 
@@ -334,6 +345,7 @@ mod benches {
 		[pallet_timestamp, Timestamp]
 		[pallet_sudo, Sudo]
 		[pallet_template, TemplateModule]
+		[pallet_move, MoveModule]
 	);
 }
 
@@ -459,6 +471,17 @@ impl_runtime_apis! {
 		fn account_nonce(account: AccountId) -> Nonce {
 			System::account_nonce(account)
 		}
+	}
+
+	impl pallet_move_runtime_api::MoveApi<Block, AccountId> for Runtime {
+        fn gas_to_weight(gas_limit: u64) -> Weight {
+             Weight::from_parts(1_123_123, 0)	// Hardcoded for testing
+        }
+
+        // Convert Gas to Weight.
+        fn weight_to_gas(weight: Weight) -> u64 {
+            100									// Hardcoded for testing
+        }
 	}
 
 	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime {

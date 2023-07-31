@@ -4421,6 +4421,7 @@ dependencies = [
  "futures",
  "jsonrpsee",
  "node-template-runtime",
+ "pallet-move-rpc",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc",
  "sc-basic-authorship",
@@ -4468,6 +4469,8 @@ dependencies = [
  "pallet-aura",
  "pallet-balances",
  "pallet-grandpa",
+ "pallet-move",
+ "pallet-move-runtime-api",
  "pallet-sudo",
  "pallet-template",
  "pallet-timestamp",
@@ -4749,6 +4752,39 @@ dependencies = [
  "sp-session",
  "sp-staking",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-move"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+]
+
+[[package]]
+name = "pallet-move-rpc"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "jsonrpsee",
+ "pallet-move-runtime-api",
+ "parity-scale-codec",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
+name = "pallet-move-runtime-api"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "sp-api",
 ]
 
 [[package]]
