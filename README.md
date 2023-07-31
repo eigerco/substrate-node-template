@@ -1,5 +1,7 @@
 # Substrate Node Template
 
+*Notice:* node template from this git branch (`polkadot-1.0.0-pallet-move`) demands Move pallet to be placed in the same directory as the node template. Move pallet will be compiled with the node and user will be able to execute extrinsics and RPC using standard mechanisms.
+
 A fresh [Substrate](https://substrate.io/) node, ready for hacking :rocket:
 
 A standalone version of this template is available for each release of Polkadot in the [Substrate Developer Hub Parachain Template](https://github.com/substrate-developer-hub/substrate-parachain-template/) repository.
