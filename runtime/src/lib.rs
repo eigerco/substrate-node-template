@@ -482,6 +482,34 @@ impl_runtime_apis! {
         fn weight_to_gas(weight: Weight) -> u64 {
             100									// Hardcoded for testing
         }
+
+		// Estimate gas for publish module.
+        fn estimate_gas_publish(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
+			100									// Hardcoded for testing
+        }
+
+        // Estimate gas for execute script.
+        fn estimate_gas_execute(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
+			100									// Hardcoded for testing
+        }
+
+        // Get module binary by it's address
+        fn get_module(module_id: Vec<u8>) -> Result<Option<Vec<u8>>, Vec<u8>> {
+            Ok(Some(module_id.clone()))
+        }
+
+        // Get module ABI by it's address
+        fn get_module_abi(module_id: Vec<u8>) -> Result<Option<Vec<u8>>, Vec<u8>> {
+            Ok(Some(module_id.clone()))
+        }
+
+        // Get resource
+        fn get_resource(
+            account: AccountId,
+            tag: Vec<u8>,
+        ) -> Result<Option<Vec<u8>>, Vec<u8>> {
+            Ok(Some(tag.clone()))
+        }
 	}
 
 	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime {
