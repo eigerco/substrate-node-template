@@ -495,12 +495,12 @@ impl_runtime_apis! {
 
         // Get module binary by it's address
         fn get_module(module_id: Vec<u8>) -> Result<Option<Vec<u8>>, Vec<u8>> {
-            Ok(Some(module_id.clone()))
+            MoveModule::get_module(&module_id.as_slice())
         }
 
         // Get module ABI by it's address
         fn get_module_abi(module_id: Vec<u8>) -> Result<Option<Vec<u8>>, Vec<u8>> {
-            Ok(Some(module_id.clone()))
+            MoveModule::get_module_abi(&module_id.as_slice())
         }
 
         // Get resource
@@ -508,7 +508,7 @@ impl_runtime_apis! {
             account: AccountId,
             tag: Vec<u8>,
         ) -> Result<Option<Vec<u8>>, Vec<u8>> {
-            Ok(Some(tag.clone()))
+            MoveModule::get_resource(&account, &tag.as_slice())
         }
 	}
 
