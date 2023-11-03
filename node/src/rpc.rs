@@ -40,9 +40,9 @@ where
 	C::Api: pallet_move_rpc::MoveRuntimeApi<Block, AccountId>,
 	P: TransactionPool + 'static,
 {
+	use pallet_move_rpc::{MoveApiServer, MovePallet};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
-	use pallet_move_rpc::{MovePallet, MoveApiServer};
 
 	let mut module = RpcModule::new(());
 	let FullDeps { client, pool, deny_unsafe } = deps;

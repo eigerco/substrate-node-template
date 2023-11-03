@@ -4276,6 +4276,7 @@ dependencies = [
 [[package]]
 name = "move-binary-format"
 version = "0.0.3"
+source = "git+https://github.com/eigerco/substrate-move.git#3d1b6edcf92f94727940f0f5f04f93aa259d940b"
 dependencies = [
  "anyhow",
  "hashbrown 0.14.1",
@@ -4288,10 +4289,12 @@ dependencies = [
 [[package]]
 name = "move-borrow-graph"
 version = "0.0.1"
+source = "git+https://github.com/eigerco/substrate-move.git#3d1b6edcf92f94727940f0f5f04f93aa259d940b"
 
 [[package]]
 name = "move-bytecode-verifier"
 version = "0.1.0"
+source = "git+https://github.com/eigerco/substrate-move.git#3d1b6edcf92f94727940f0f5f04f93aa259d940b"
 dependencies = [
  "anyhow",
  "fail",
@@ -4305,6 +4308,7 @@ dependencies = [
 [[package]]
 name = "move-core-types"
 version = "0.0.4"
+source = "git+https://github.com/eigerco/substrate-move.git#3d1b6edcf92f94727940f0f5f04f93aa259d940b"
 dependencies = [
  "anyhow",
  "bcs",
@@ -4323,6 +4327,7 @@ dependencies = [
 [[package]]
 name = "move-stdlib"
 version = "0.1.1"
+source = "git+https://github.com/eigerco/substrate-move.git#3d1b6edcf92f94727940f0f5f04f93aa259d940b"
 dependencies = [
  "hex",
  "move-binary-format",
@@ -4337,20 +4342,34 @@ dependencies = [
 [[package]]
 name = "move-vm-backend"
 version = "0.1.0"
+source = "git+https://github.com/eigerco/substrate-move.git#3d1b6edcf92f94727940f0f5f04f93aa259d940b"
 dependencies = [
  "anyhow",
  "bcs",
  "move-binary-format",
  "move-core-types",
  "move-stdlib",
+ "move-vm-backend-common",
  "move-vm-runtime",
  "move-vm-types",
  "serde",
 ]
 
 [[package]]
+name = "move-vm-backend-common"
+version = "0.1.0"
+source = "git+https://github.com/eigerco/substrate-move.git#3d1b6edcf92f94727940f0f5f04f93aa259d940b"
+dependencies = [
+ "anyhow",
+ "bcs",
+ "serde",
+ "serde_bytes",
+]
+
+[[package]]
 name = "move-vm-runtime"
 version = "0.1.0"
+source = "git+https://github.com/eigerco/substrate-move.git#3d1b6edcf92f94727940f0f5f04f93aa259d940b"
 dependencies = [
  "better_any",
  "fail",
@@ -4367,6 +4386,7 @@ dependencies = [
 [[package]]
 name = "move-vm-types"
 version = "0.1.0"
+source = "git+https://github.com/eigerco/substrate-move.git#3d1b6edcf92f94727940f0f5f04f93aa259d940b"
 dependencies = [
  "bcs",
  "move-binary-format",
@@ -4934,6 +4954,7 @@ dependencies = [
 name = "pallet-move"
 version = "0.1.0"
 dependencies = [
+ "bcs",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
