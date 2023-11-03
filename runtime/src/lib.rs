@@ -18,10 +18,16 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
+
+use scale_info::prelude::format;
+use sp_core::{crypto::Ss58Codec, sr25519::Public};
+
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
+
+use scale_info::prelude::string::String;
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
@@ -474,42 +480,50 @@ impl_runtime_apis! {
 	}
 
 	impl pallet_move_runtime_api::MoveApi<Block, AccountId> for Runtime {
-        fn gas_to_weight(gas_limit: u64) -> Weight {
-             Weight::from_parts(1_123_123, 0)	// Hardcoded for testing
-        }
+		fn gas_to_weight(gas_limit: u64) -> Weight {
+			 Weight::from_parts(1_123_123, 0)	// Hardcoded for testing
+		}
 
-        // Convert Gas to Weight.
-        fn weight_to_gas(weight: Weight) -> u64 {
-            100									// Hardcoded for testing
-        }
+		// Convert Gas to Weight.
+		fn weight_to_gas(weight: Weight) -> u64 {
+			100									// Hardcoded for testing
+		}
 
 		// Estimate gas for publish module.
-        fn estimate_gas_publish(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
+		fn estimate_gas_publish(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
 			100									// Hardcoded for testing
-        }
+		}
 
-        // Estimate gas for execute script.
-        fn estimate_gas_execute(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
+		// Estimate gas for execute script.
+		fn estimate_gas_execute(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
 			100									// Hardcoded for testing
-        }
+		}
 
-        // Get module binary by it's address
-        fn get_module(module_id: Vec<u8>) -> Result<Option<Vec<u8>>, Vec<u8>> {
-            MoveModule::get_module(&module_id.as_slice())
-        }
+		// Get module binary by it's Substrate address & name
+		fn get_module(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
+			let bs58 = Public::from_ss58check_with_version(&address).map_err(|e| {
+				format!("runtime error in get_module: {:?}", e)
+			})?;
 
-        // Get module ABI by it's address
-        fn get_module_abi(module_id: Vec<u8>) -> Result<Option<Vec<u8>>, Vec<u8>> {
-            MoveModule::get_module_abi(&module_id.as_slice())
-        }
+			MoveModule::get_module(&bs58.0.into(), &name)
+		}
 
-        // Get resource
-        fn get_resource(
-            account: AccountId,
-            tag: Vec<u8>,
-        ) -> Result<Option<Vec<u8>>, Vec<u8>> {
-            MoveModule::get_resource(&account, &tag.as_slice())
-        }
+		// Get module ABI by it's Substrate address & name
+		fn get_module_abi(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
+			let bs58 = Public::from_ss58check_with_version(&address).map_err(|e| {
+				format!("runtime error in get_module: {:?}", e)
+			})?;
+
+			MoveModule::get_module_abi(&bs58.0.into(), &name)
+		}
+
+		// Get resource
+		fn get_resource(
+			account: AccountId,
+			tag: Vec<u8>,
+		) -> Result<Option<Vec<u8>>, Vec<u8>> {
+			MoveModule::get_resource(&account, &tag.as_slice())
+		}
 	}
 
 	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime {
