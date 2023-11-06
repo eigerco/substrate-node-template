@@ -501,20 +501,20 @@ impl_runtime_apis! {
 
 		// Get module binary by it's Substrate address & name
 		fn get_module(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
-			let bs58 = Public::from_ss58check_with_version(&address).map_err(|e| {
+			let bs58 = Public::from_ss58check(&address).map_err(|e| {
 				format!("runtime error in get_module: {:?}", e)
 			})?;
 
-			MoveModule::get_module(&bs58.0.into(), &name)
+			MoveModule::get_module(&bs58.into(), &name)
 		}
 
 		// Get module ABI by it's Substrate address & name
 		fn get_module_abi(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
-			let bs58 = Public::from_ss58check_with_version(&address).map_err(|e| {
+			let bs58 = Public::from_ss58check(&address).map_err(|e| {
 				format!("runtime error in get_module: {:?}", e)
 			})?;
 
-			MoveModule::get_module_abi(&bs58.0.into(), &name)
+			MoveModule::get_module_abi(&bs58.into(), &name)
 		}
 
 		// Get resource
