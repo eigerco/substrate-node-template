@@ -59,6 +59,7 @@ frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk.git", b
 frame-benchmarking-cli = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.4.0" }
 
 # Local Dependencies
+pallet-move-rpc = { version = "0.1.0", path = "../../pallet-move/rpc" }
 node-template-runtime = { path = "../runtime" }
 
 # CLI-specific dependencies

@@ -7,9 +7,14 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use pallet_grandpa::AuthorityId as GrandpaId;
+use scale_info::prelude::format;
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::{
+	crypto::{KeyTypeId, Ss58Codec},
+	sr25519::Public,
+	OpaqueMetadata,
+};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
@@ -49,6 +54,9 @@ pub use sp_runtime::{Perbill, Permill};
 
 /// Import the template pallet.
 pub use pallet_template;
+
+/// Import the Move pallet.
+pub use pallet_move;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -280,6 +288,13 @@ impl pallet_template::Config for Runtime {
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
 
+/// Configure the pallet-move.
+impl pallet_move::Config for Runtime {
+	type Currency = Balances;
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -292,6 +307,7 @@ construct_runtime!(
 		Sudo: pallet_sudo,
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template,
+		MoveModule: pallet_move,
 	}
 );
 
@@ -341,13 +357,14 @@ extern crate frame_benchmarking;
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	define_benchmarks!(
-		[frame_benchmarking, BaselineBench::<Runtime>]
-		[frame_system, SystemBench::<Runtime>]
-		[pallet_balances, Balances]
-		[pallet_timestamp, Timestamp]
-		[pallet_sudo, Sudo]
-		[pallet_template, TemplateModule]
-	);
+			[frame_benchmarking, BaselineBench::<Runtime>]
+			[frame_system, SystemBench::<Runtime>]
+			[pallet_balances, Balances]
+			[pallet_timestamp, Timestamp]
+			[pallet_sudo, Sudo]
+			[pallet_template, TemplateModule]
+	-		[pallet_move, MoveModule]
+		);
 }
 
 impl_runtime_apis! {
@@ -471,6 +488,54 @@ impl_runtime_apis! {
 	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce> for Runtime {
 		fn account_nonce(account: AccountId) -> Nonce {
 			System::account_nonce(account)
+		}
+	}
+
+	impl pallet_move_runtime_api::MoveApi<Block, AccountId> for Runtime {
+		fn gas_to_weight(gas_limit: u64) -> Weight {
+			 Weight::from_parts(1_123_123, 0)	// Hardcoded for testing
+		}
+
+		// Convert Gas to Weight.
+		fn weight_to_gas(weight: Weight) -> u64 {
+			100
+		}
+
+		// Estimate gas for publish module.
+		fn estimate_gas_publish(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
+			100
+		}
+
+		// Estimate gas for execute script.
+		fn estimate_gas_execute(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
+			100
+		}
+
+		// Get module binary by it's Substrate address & name
+		fn get_module(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
+
+			let bs58 = Public::from_ss58check(&address).map_err(|e| {
+				format!("runtime error in get_module: {:?}", e)
+			})?;
+
+			MoveModule::get_module(&bs58.into(), &name)
+		}
+
+		// Get module ABI by it's Substrate address & name
+		fn get_module_abi(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
+			let bs58 = Public::from_ss58check(&address).map_err(|e| {
+				format!("runtime error in get_module: {:?}", e)
+			})?;
+
+			MoveModule::get_module_abi(&bs58.into(), &name)
+		}
+
+		// Get resource
+		fn get_resource(
+			account: AccountId,
+			tag: Vec<u8>,
+		) -> Result<Option<Vec<u8>>, Vec<u8>> {
+			MoveModule::get_resource(&account, &tag.as_slice())
 		}
 	}
 
