@@ -18,17 +18,12 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
-
-use scale_info::prelude::format;
-use sp_core::{crypto::Ss58Codec, sr25519::Public};
-
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use scale_info::prelude::string::String;
-
+use frame_support::genesis_builder_helper::{build_config, create_default_config};
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, parameter_types,
@@ -54,9 +49,6 @@ pub use sp_runtime::{Perbill, Permill};
 
 /// Import the template pallet.
 pub use pallet_template;
-
-/// Import the Move pallet.
-pub use pallet_move;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -216,14 +208,19 @@ impl pallet_aura::Config for Runtime {
 	type DisabledValidators = ();
 	type MaxAuthorities = ConstU32<32>;
 	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+
+	#[cfg(feature = "experimental")]
+	type SlotDuration = pallet_aura::MinimumPeriodTimesTwo<Runtime>;
 }
 
 impl pallet_grandpa::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type MaxNominators = ConstU32<100>;
+
 	type WeightInfo = ();
 	type MaxAuthorities = ConstU32<32>;
+	type MaxNominators = ConstU32<0>;
 	type MaxSetIdSessionEntries = ConstU64<0>;
+
 	type KeyOwnerProof = sp_core::Void;
 	type EquivocationReportSystem = ();
 }
@@ -283,13 +280,6 @@ impl pallet_template::Config for Runtime {
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
 
-/// Configure the pallet-move.
-impl pallet_move::Config for Runtime {
-	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
-}
-
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -302,8 +292,6 @@ construct_runtime!(
 		Sudo: pallet_sudo,
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template,
-		// Include the custom logic from the pallet-move in the runtime.
-		MoveModule: pallet_move,
 	}
 );
 
@@ -325,6 +313,12 @@ pub type SignedExtra = (
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
 
+/// All migrations of the runtime, aside from the ones declared in the pallets.
+///
+/// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
+#[allow(unused_parens)]
+type Migrations = ();
+
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
 	generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
@@ -337,6 +331,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
+	Migrations,
 >;
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -352,7 +347,6 @@ mod benches {
 		[pallet_timestamp, Timestamp]
 		[pallet_sudo, Sudo]
 		[pallet_template, TemplateModule]
-		[pallet_move, MoveModule]
 	);
 }
 
@@ -480,54 +474,6 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl pallet_move_runtime_api::MoveApi<Block, AccountId> for Runtime {
-		fn gas_to_weight(gas_limit: u64) -> Weight {
-			 Weight::from_parts(1_123_123, 0)	// Hardcoded for testing
-		}
-
-		// Convert Gas to Weight.
-		fn weight_to_gas(weight: Weight) -> u64 {
-			100									// Hardcoded for testing
-		}
-
-		// Estimate gas for publish module.
-		fn estimate_gas_publish(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
-			100									// Hardcoded for testing
-		}
-
-		// Estimate gas for execute script.
-		fn estimate_gas_execute(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
-			100									// Hardcoded for testing
-		}
-
-		// Get module binary by it's Substrate address & name
-		fn get_module(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
-
-			let bs58 = Public::from_ss58check(&address).map_err(|e| {
-				format!("runtime error in get_module: {:?}", e)
-			})?;
-
-			MoveModule::get_module(&bs58.into(), &name)
-		}
-
-		// Get module ABI by it's Substrate address & name
-		fn get_module_abi(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
-			let bs58 = Public::from_ss58check(&address).map_err(|e| {
-				format!("runtime error in get_module: {:?}", e)
-			})?;
-
-			MoveModule::get_module_abi(&bs58.into(), &name)
-		}
-
-		// Get resource
-		fn get_resource(
-			account: AccountId,
-			tag: Vec<u8>,
-		) -> Result<Option<Vec<u8>>, Vec<u8>> {
-			MoveModule::get_resource(&account, &tag.as_slice())
-		}
-	}
-
 	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime {
 		fn query_info(
 			uxt: <Block as BlockT>::Extrinsic,
@@ -594,8 +540,8 @@ impl_runtime_apis! {
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-			use frame_benchmarking::{baseline, Benchmarking, BenchmarkBatch, TrackedStorageKey};
-
+			use frame_benchmarking::{baseline, Benchmarking, BenchmarkBatch};
+			use sp_storage::TrackedStorageKey;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use baseline::Pallet as BaselineBench;
 
@@ -632,6 +578,16 @@ impl_runtime_apis! {
 			// NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
 			// have a backtrace here.
 			Executive::try_execute_block(block, state_root_check, signature_check, select).expect("execute-block failed")
+		}
+	}
+
+	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+		fn create_default_config() -> Vec<u8> {
+			create_default_config::<RuntimeGenesisConfig>()
+		}
+
+		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
+			build_config::<RuntimeGenesisConfig>(config)
 		}
 	}
 }
