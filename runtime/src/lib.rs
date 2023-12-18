@@ -501,17 +501,22 @@ impl_runtime_apis! {
 			100
 		}
 
-		// Estimate gas for publish module.
-		fn estimate_gas_publish(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
+		// Estimate gas for publishing a module.
+		fn estimate_gas_publish_module(account: AccountId, bytecode: Vec<u8>) -> u64 {
+			100
+		}
+
+		// Estimate gas for publishing a bundle.
+		fn estimate_gas_publish_bundle(account: AccountId, bytecode: Vec<u8>) -> u64 {
 			100
 		}
 
 		// Estimate gas for execute script.
-		fn estimate_gas_execute(account: AccountId, bytecode: Vec<u8>, gas_limit: u64) -> u64 {
+		fn estimate_gas_execute(account: AccountId, bytecode: Vec<u8>) -> u64 {
 			100
 		}
 
-		// Get module binary by it's Substrate address & name
+		// Get module binary by it's Substrate address & name.
 		fn get_module(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
 
 			let bs58 = Public::from_ss58check(&address).map_err(|e| {
@@ -521,7 +526,7 @@ impl_runtime_apis! {
 			MoveModule::get_module(&bs58.into(), &name)
 		}
 
-		// Get module ABI by it's Substrate address & name
+		// Get module ABI by it's Substrate address & name.
 		fn get_module_abi(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
 			let bs58 = Public::from_ss58check(&address).map_err(|e| {
 				format!("runtime error in get_module: {:?}", e)
@@ -530,7 +535,7 @@ impl_runtime_apis! {
 			MoveModule::get_module_abi(&bs58.into(), &name)
 		}
 
-		// Get resource
+		// Get resource.
 		fn get_resource(
 			account: AccountId,
 			tag: Vec<u8>,
