@@ -7,6 +7,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use pallet_grandpa::AuthorityId as GrandpaId;
+use pallet_move_runtime_api::types::MoveApiEstimation;
 use scale_info::prelude::{format, string::String};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -21,7 +22,7 @@ use sp_runtime::{
 		AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, One, Verify,
 	},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, MultiSignature,
+	ApplyExtrinsicResult, DispatchError, MultiSignature,
 };
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
@@ -502,18 +503,32 @@ impl_runtime_apis! {
 		}
 
 		// Estimate gas for publishing a module.
-		fn estimate_gas_publish_module(account: AccountId, bytecode: Vec<u8>) -> u64 {
-			100
+		fn estimate_gas_publish_module(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
+			let vm_result = MoveModule::raw_publish_module(&account, bytecode, pallet_move::GasStrategy::DryRun)?;
+
+			Ok(MoveApiEstimation {
+				vm_status_code: vm_result.status_code.into(),
+				gas_used: vm_result.gas_used,
+			})
 		}
 
 		// Estimate gas for publishing a bundle.
-		fn estimate_gas_publish_bundle(account: AccountId, bytecode: Vec<u8>) -> u64 {
-			100
+		fn estimate_gas_publish_bundle(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
+			let vm_result = MoveModule::raw_publish_bundle(&account, bytecode, pallet_move::GasStrategy::DryRun)?;
+
+			Ok(MoveApiEstimation {
+				vm_status_code: vm_result.status_code.into(),
+				gas_used: vm_result.gas_used,
+			})
 		}
 
 		// Estimate gas for execute script.
-		fn estimate_gas_execute(account: AccountId, bytecode: Vec<u8>) -> u64 {
-			100
+		fn estimate_gas_execute(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
+			// TODO: implement raw_execute
+			Ok(MoveApiEstimation {
+				vm_status_code: 0,
+				gas_used: 0,
+			})
 		}
 
 		// Get module binary by it's Substrate address & name.
