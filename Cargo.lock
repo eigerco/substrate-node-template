@@ -5178,6 +5178,7 @@ dependencies = [
  "jsonrpsee",
  "pallet-move-runtime-api",
  "parity-scale-codec",
+ "serde",
  "sp-api",
  "sp-blockchain",
  "sp-runtime",
@@ -5189,7 +5190,9 @@ version = "0.1.0"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
+ "scale-info",
  "sp-api",
+ "sp-runtime",
 ]
 
 [[package]]
