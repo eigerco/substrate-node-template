@@ -113,5 +113,8 @@ fn testnet_genesis(
 			// Assign network admin rights.
 			"key": Some(root_key),
 		},
+		"moveModule": {
+			"changeDefaultStdlibBundleTo": Option::<Vec<u8>>::None,
+		}
 	})
 }
