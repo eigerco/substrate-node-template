@@ -114,7 +114,8 @@ fn testnet_genesis(
 			"key": Some(root_key),
 		},
 		"moveModule": {
-			"changeDefaultStdlibBundleTo": Option::<Vec<u8>>::None,
+			"changeDefaultMoveStdlibBundleTo": Option::<Vec<u8>>::None,
+			"changeDefaultSubstrateStdlibBundleTo": Option::<Vec<u8>>::None,
 		}
 	})
 }
