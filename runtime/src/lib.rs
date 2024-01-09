@@ -7,6 +7,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use pallet_grandpa::AuthorityId as GrandpaId;
+use pallet_move::types::ModuleAbi;
 use pallet_move_runtime_api::types::MoveApiEstimation;
 use scale_info::prelude::{format, string::String};
 use sp_api::impl_runtime_apis;
@@ -542,7 +543,7 @@ impl_runtime_apis! {
 		}
 
 		// Get module ABI by it's Substrate address & name.
-		fn get_module_abi(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
+		fn get_module_abi(address: String, name: String) -> Result<Option<ModuleAbi>, Vec<u8>> {
 			let bs58 = Public::from_ss58check(&address).map_err(|e| {
 				format!("runtime error in get_module: {:?}", e)
 			})?;
