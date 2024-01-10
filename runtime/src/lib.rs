@@ -7,8 +7,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use pallet_grandpa::AuthorityId as GrandpaId;
-use pallet_move::types::ModuleAbi;
-use pallet_move_runtime_api::types::MoveApiEstimation;
+use pallet_move_runtime_api::{ModuleAbi, MoveApiEstimation};
 use scale_info::prelude::{format, string::String};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
