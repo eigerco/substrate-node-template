@@ -523,11 +523,28 @@ impl_runtime_apis! {
 		}
 
 		// Estimate gas for execute script.
-		fn estimate_gas_execute(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
-			// TODO: implement raw_execute
+		fn estimate_gas_execute_script(account: AccountId, transaction: Vec<u8>, cheque_limit: u128) -> Result<MoveApiEstimation, DispatchError> {
+			// Main input for the VM are these script parameters.
+			let pallet_move::ScriptTransaction {
+				bytecode,
+				args,
+				type_args,
+			} = pallet_move::ScriptTransaction::try_from(transaction.as_ref())
+				.map_err(|_| pallet_move::Error::<Runtime>::InvalidScriptTransaction)?;
+			let args: Vec<&[u8]> = args.iter().map(AsRef::as_ref).collect();
+
+			// Make sure the script parameters are valid.
+			pallet_move::verify_script_integrity_and_check_signers(&bytecode).map_err(pallet_move::Error::<Runtime>::from)?;
+
+			// `limited_balance` cannot perform any actual updates to balances.
+			let mut limited_balance = pallet_move::balance::BalanceAdapter::<Runtime>::new();
+			limited_balance.write_cheque(&account, &cheque_limit)?;
+
+			let vm_result = MoveModule::raw_execute_script(&bytecode, type_args, args, pallet_move::GasStrategy::DryRun, limited_balance)?;
+
 			Ok(MoveApiEstimation {
-				vm_status_code: 0,
-				gas_used: 0,
+				vm_status_code: vm_result.status_code.into(),
+				gas_used: vm_result.gas_used,
 			})
 		}
 
@@ -555,7 +572,7 @@ impl_runtime_apis! {
 			account: AccountId,
 			tag: Vec<u8>,
 		) -> Result<Option<Vec<u8>>, Vec<u8>> {
-			MoveModule::get_resource(&account, &tag.as_slice())
+			MoveModule::get_resource(&account, tag.as_slice())
 		}
 	}
 
