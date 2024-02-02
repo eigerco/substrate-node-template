@@ -493,12 +493,14 @@ impl_runtime_apis! {
 	}
 
 	impl pallet_move_runtime_api::MoveApi<Block, AccountId> for Runtime {
-		fn gas_to_weight(gas_limit: u64) -> Weight {
+		fn gas_to_weight(_gas_limit: u64) -> Weight {
+			// TODO (eiger): implement in M3
 			 Weight::from_parts(1_123_123, 0)	// Hardcoded for testing
 		}
 
 		// Convert Gas to Weight.
-		fn weight_to_gas(weight: Weight) -> u64 {
+		fn weight_to_gas(_weight: Weight) -> u64 {
+			// TODO (eiger): implement in M3
 			100
 		}
 
