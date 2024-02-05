@@ -358,14 +358,14 @@ extern crate frame_benchmarking;
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	define_benchmarks!(
-			[frame_benchmarking, BaselineBench::<Runtime>]
-			[frame_system, SystemBench::<Runtime>]
-			[pallet_balances, Balances]
-			[pallet_timestamp, Timestamp]
-			[pallet_sudo, Sudo]
-			[pallet_template, TemplateModule]
-	-		[pallet_move, MoveModule]
-		);
+		[frame_benchmarking, BaselineBench::<Runtime>]
+		[frame_system, SystemBench::<Runtime>]
+		[pallet_balances, Balances]
+		[pallet_timestamp, Timestamp]
+		[pallet_sudo, Sudo]
+		[pallet_template, TemplateModule]
+		[pallet_move, MoveModule]
+	);
 }
 
 impl_runtime_apis! {
