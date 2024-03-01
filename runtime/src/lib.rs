@@ -7,7 +7,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use pallet_grandpa::AuthorityId as GrandpaId;
-use pallet_move_runtime_api::{ModuleAbi, MoveApiEstimation};
+use pallet_move::api::{ModuleAbi, MoveApiEstimation};
 use scale_info::prelude::{format, string::String};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -289,11 +289,19 @@ impl pallet_template::Config for Runtime {
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	pub const MaxLifetimeRequests: BlockNumber = 50400;
+	pub const MaxScriptSigners: u32 = 8;
+}
+
 /// Configure the pallet-move.
 impl pallet_move::Config for Runtime {
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
+	type CurrencyBalance = Balance;
+    type MaxLifetimeRequests = MaxLifetimeRequests;
+    type MaxScriptSigners = MaxScriptSigners;
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -492,7 +500,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl pallet_move_runtime_api::MoveApi<Block, AccountId> for Runtime {
+	impl pallet_move::api::MoveApi<Block, AccountId> for Runtime {
 		fn gas_to_weight(_gas_limit: u64) -> Weight {
 			// TODO (eiger): implement in M3
 			 Weight::from_parts(1_123_123, 0)	// Hardcoded for testing
@@ -506,7 +514,8 @@ impl_runtime_apis! {
 
 		// Estimate gas for publishing a module.
 		fn estimate_gas_publish_module(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
-			let vm_result = MoveModule::raw_publish_module(&account, bytecode, pallet_move::GasStrategy::DryRun)?;
+			let address = MoveModule::to_move_address(&account)?;
+			let vm_result = MoveModule::raw_publish_module(&address, bytecode, pallet_move::GasStrategy::DryRun)?;
 
 			Ok(MoveApiEstimation {
 				vm_status_code: vm_result.status_code.into(),
@@ -516,7 +525,8 @@ impl_runtime_apis! {
 
 		// Estimate gas for publishing a bundle.
 		fn estimate_gas_publish_bundle(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
-			let vm_result = MoveModule::raw_publish_bundle(&account, bytecode, pallet_move::GasStrategy::DryRun)?;
+			let address = MoveModule::to_move_address(&account)?;
+			let vm_result = MoveModule::raw_publish_bundle(&address, bytecode, pallet_move::GasStrategy::DryRun)?;
 
 			Ok(MoveApiEstimation {
 				vm_status_code: vm_result.status_code.into(),
