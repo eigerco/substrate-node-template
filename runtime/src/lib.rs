@@ -298,10 +298,10 @@ parameter_types! {
 impl pallet_move::Config for Runtime {
 	type Currency = Balances;
 	type CurrencyBalance = Balance;
-    type MaxLifetimeRequests = MaxLifetimeRequests;
-    type MaxScriptSigners = MaxScriptSigners;
-    type RuntimeEvent = RuntimeEvent;
-    type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
+	type MaxLifetimeRequests = MaxLifetimeRequests;
+	type MaxScriptSigners = MaxScriptSigners;
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -535,24 +535,24 @@ impl_runtime_apis! {
 		}
 
 		// Estimate gas for execute script.
-		fn estimate_gas_execute_script(account: AccountId, transaction: Vec<u8>, cheque_limit: u128) -> Result<MoveApiEstimation, DispatchError> {
+		fn estimate_gas_execute_script(_account: AccountId, transaction_bc: Vec<u8>, _cheque_limit: u128) -> Result<MoveApiEstimation, DispatchError> {
 			// Main input for the VM are these script parameters.
 			let pallet_move::ScriptTransaction {
 				bytecode,
 				args,
 				type_args,
-			} = pallet_move::ScriptTransaction::try_from(transaction.as_ref())
+			} = pallet_move::ScriptTransaction::try_from(transaction_bc.as_ref())
 				.map_err(|_| pallet_move::Error::<Runtime>::InvalidScriptTransaction)?;
 			let args: Vec<&[u8]> = args.iter().map(AsRef::as_ref).collect();
 
 			// Make sure the script parameters are valid.
-			pallet_move::verify_script_integrity_and_check_signers(&bytecode).map_err(pallet_move::Error::<Runtime>::from)?;
+			let signer_count = pallet_move::verify_script_integrity_and_check_signers(&bytecode).map_err(pallet_move::Error::<Runtime>::from)?;
 
-			// `limited_balance` cannot perform any actual updates to balances.
-			let mut limited_balance = pallet_move::balance::BalanceAdapter::<Runtime>::new();
-			limited_balance.write_cheque(&account, &cheque_limit)?;
+			// In the case of a dry run, we have an "unlimited" balance (u128::MAX) because it is
+			// not relevant to the gas estimation (no changes will be applied).
+			let unlimited_balance = pallet_move::balance::BalanceAdapter::<Runtime>::for_dry_run(&args, signer_count)?;
 
-			let vm_result = MoveModule::raw_execute_script(&bytecode, type_args, args, pallet_move::GasStrategy::DryRun, limited_balance)?;
+			let vm_result = MoveModule::raw_execute_script(&bytecode, type_args, args, pallet_move::GasStrategy::DryRun, unlimited_balance)?;
 
 			Ok(MoveApiEstimation {
 				vm_status_code: vm_result.status_code.into(),
