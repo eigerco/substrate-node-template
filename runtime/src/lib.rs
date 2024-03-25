@@ -7,7 +7,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use pallet_grandpa::AuthorityId as GrandpaId;
-use pallet_move_runtime_api::{ModuleAbi, MoveApiEstimation};
+use pallet_move::api::{ModuleAbi, MoveApiEstimation};
 use scale_info::prelude::{format, string::String};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -289,9 +289,17 @@ impl pallet_template::Config for Runtime {
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	pub const MaxLifetimeRequests: BlockNumber = 50400;
+	pub const MaxScriptSigners: u32 = 8;
+}
+
 /// Configure the pallet-move.
 impl pallet_move::Config for Runtime {
 	type Currency = Balances;
+	type CurrencyBalance = Balance;
+	type MaxLifetimeRequests = MaxLifetimeRequests;
+	type MaxScriptSigners = MaxScriptSigners;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
 }
@@ -492,7 +500,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl pallet_move_runtime_api::MoveApi<Block, AccountId> for Runtime {
+	impl pallet_move::api::MoveApi<Block, AccountId> for Runtime {
 		fn gas_to_weight(_gas_limit: u64) -> Weight {
 			// TODO (eiger): implement in M3
 			 Weight::from_parts(1_123_123, 0)	// Hardcoded for testing
@@ -506,7 +514,8 @@ impl_runtime_apis! {
 
 		// Estimate gas for publishing a module.
 		fn estimate_gas_publish_module(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
-			let vm_result = MoveModule::raw_publish_module(&account, bytecode, pallet_move::GasStrategy::DryRun)?;
+			let address = MoveModule::to_move_address(&account)?;
+			let vm_result = MoveModule::raw_publish_module(&address, bytecode, pallet_move::GasStrategy::DryRun)?;
 
 			Ok(MoveApiEstimation {
 				vm_status_code: vm_result.status_code.into(),
@@ -516,7 +525,8 @@ impl_runtime_apis! {
 
 		// Estimate gas for publishing a bundle.
 		fn estimate_gas_publish_bundle(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
-			let vm_result = MoveModule::raw_publish_bundle(&account, bytecode, pallet_move::GasStrategy::DryRun)?;
+			let address = MoveModule::to_move_address(&account)?;
+			let vm_result = MoveModule::raw_publish_bundle(&address, bytecode, pallet_move::GasStrategy::DryRun)?;
 
 			Ok(MoveApiEstimation {
 				vm_status_code: vm_result.status_code.into(),
@@ -525,24 +535,24 @@ impl_runtime_apis! {
 		}
 
 		// Estimate gas for execute script.
-		fn estimate_gas_execute_script(account: AccountId, transaction: Vec<u8>, cheque_limit: u128) -> Result<MoveApiEstimation, DispatchError> {
+		fn estimate_gas_execute_script(_account: AccountId, transaction_bc: Vec<u8>, _cheque_limit: u128) -> Result<MoveApiEstimation, DispatchError> {
 			// Main input for the VM are these script parameters.
 			let pallet_move::ScriptTransaction {
 				bytecode,
 				args,
 				type_args,
-			} = pallet_move::ScriptTransaction::try_from(transaction.as_ref())
+			} = pallet_move::ScriptTransaction::try_from(transaction_bc.as_ref())
 				.map_err(|_| pallet_move::Error::<Runtime>::InvalidScriptTransaction)?;
 			let args: Vec<&[u8]> = args.iter().map(AsRef::as_ref).collect();
 
 			// Make sure the script parameters are valid.
-			pallet_move::verify_script_integrity_and_check_signers(&bytecode).map_err(pallet_move::Error::<Runtime>::from)?;
+			let signer_count = pallet_move::verify_script_integrity_and_check_signers(&bytecode).map_err(pallet_move::Error::<Runtime>::from)?;
 
-			// `limited_balance` cannot perform any actual updates to balances.
-			let mut limited_balance = pallet_move::balance::BalanceAdapter::<Runtime>::new();
-			limited_balance.write_cheque(&account, &cheque_limit)?;
+			// In the case of a dry run, we have an "unlimited" balance (u128::MAX) because it is
+			// not relevant to the gas estimation (no changes will be applied).
+			let unlimited_balance = pallet_move::balance::BalanceAdapter::<Runtime>::for_dry_run(&args, signer_count)?;
 
-			let vm_result = MoveModule::raw_execute_script(&bytecode, type_args, args, pallet_move::GasStrategy::DryRun, limited_balance)?;
+			let vm_result = MoveModule::raw_execute_script(&bytecode, type_args, args, pallet_move::GasStrategy::DryRun, unlimited_balance)?;
 
 			Ok(MoveApiEstimation {
 				vm_status_code: vm_result.status_code.into(),

@@ -51,8 +51,7 @@ frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk.git", b
 frame-system-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.4.0", default-features = false, optional = true }
 
 # Local Dependencies
-pallet-move = { path = "../../pallet-move", default-features = false }
-pallet-move-runtime-api = { path = "../../pallet-move/rpc/runtime-api", default-features = false }
+pallet-move = { path = "../../pallet-move/pallet", default-features = false }
 pallet-template = { path = "../pallets/template", default-features = false }
 
 [build-dependencies]
@@ -95,7 +94,6 @@ std = [
 	"sp-version/std",
 	"substrate-wasm-builder",
 	"pallet-move/std",
-	"pallet-move-runtime-api/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
