@@ -535,7 +535,7 @@ impl_runtime_apis! {
 		}
 
 		// Estimate gas for execute script.
-		fn estimate_gas_execute_script(_account: AccountId, transaction_bc: Vec<u8>, _cheque_limit: u128) -> Result<MoveApiEstimation, DispatchError> {
+		fn estimate_gas_execute_script(transaction_bc: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
 			// Main input for the VM are these script parameters.
 			let pallet_move::ScriptTransaction {
 				bytecode,
