@@ -290,7 +290,7 @@ impl pallet_template::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MaxLifetimeRequests: BlockNumber = 50400;
+	pub const MultisigReqExpireTime: BlockNumber = 50400;
 	pub const MaxScriptSigners: u32 = 8;
 }
 
@@ -298,7 +298,7 @@ parameter_types! {
 impl pallet_move::Config for Runtime {
 	type Currency = Balances;
 	type CurrencyBalance = Balance;
-	type MaxLifetimeRequests = MaxLifetimeRequests;
+	type MultisigReqExpireTime = MultisigReqExpireTime;
 	type MaxScriptSigners = MaxScriptSigners;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
