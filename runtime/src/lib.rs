@@ -11,11 +11,7 @@ use pallet_move::api::{ModuleAbi, MoveApiEstimation};
 use scale_info::prelude::{format, string::String};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{
-	crypto::{KeyTypeId, Ss58Codec},
-	sr25519::Public,
-	OpaqueMetadata,
-};
+use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
@@ -501,90 +497,39 @@ impl_runtime_apis! {
 	}
 
 	impl pallet_move::api::MoveApi<Block, AccountId> for Runtime {
-		fn gas_to_weight(_gas_limit: u64) -> Weight {
-			// TODO (eiger): implement in M3
-			 Weight::from_parts(1_123_123, 0)	// Hardcoded for testing
+		fn gas_to_weight(gas_limit: u64) -> Weight {
+			MoveModule::rpc_gas_to_weight(gas_limit)
 		}
 
-		// Convert Gas to Weight.
-		fn weight_to_gas(_weight: Weight) -> u64 {
-			// TODO (eiger): implement in M3
-			100
+		fn weight_to_gas(weight: Weight) -> u64 {
+			MoveModule::rpc_weight_to_gas(weight)
 		}
 
-		// Estimate gas for publishing a module.
 		fn estimate_gas_publish_module(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
-			let address = MoveModule::to_move_address(&account)?;
-			let vm_result = MoveModule::raw_publish_module(&address, bytecode, pallet_move::GasStrategy::DryRun)?;
-
-			Ok(MoveApiEstimation {
-				vm_status_code: vm_result.status_code.into(),
-				gas_used: vm_result.gas_used,
-			})
+			MoveModule::rpc_estimate_gas_publish_module(&account, bytecode)
 		}
 
-		// Estimate gas for publishing a bundle.
 		fn estimate_gas_publish_bundle(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
-			let address = MoveModule::to_move_address(&account)?;
-			let vm_result = MoveModule::raw_publish_bundle(&address, bytecode, pallet_move::GasStrategy::DryRun)?;
-
-			Ok(MoveApiEstimation {
-				vm_status_code: vm_result.status_code.into(),
-				gas_used: vm_result.gas_used,
-			})
+			MoveModule::rpc_estimate_gas_publish_bundle(&account, bytecode)
 		}
 
-		// Estimate gas for execute script.
 		fn estimate_gas_execute_script(transaction_bc: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
-			// Main input for the VM are these script parameters.
-			let pallet_move::ScriptTransaction {
-				bytecode,
-				args,
-				type_args,
-			} = pallet_move::ScriptTransaction::try_from(transaction_bc.as_ref())
-				.map_err(|_| pallet_move::Error::<Runtime>::InvalidScriptTransaction)?;
-			let args: Vec<&[u8]> = args.iter().map(AsRef::as_ref).collect();
-
-			// Make sure the script parameters are valid.
-			let signer_count = pallet_move::verify_script_integrity_and_check_signers(&bytecode).map_err(pallet_move::Error::<Runtime>::from)?;
-
-			// In the case of a dry run, we have an "unlimited" balance (u128::MAX) because it is
-			// not relevant to the gas estimation (no changes will be applied).
-			let unlimited_balance = pallet_move::balance::BalanceAdapter::<Runtime>::for_dry_run(&args, signer_count)?;
-
-			let vm_result = MoveModule::raw_execute_script(&bytecode, type_args, args, pallet_move::GasStrategy::DryRun, unlimited_balance)?;
-
-			Ok(MoveApiEstimation {
-				vm_status_code: vm_result.status_code.into(),
-				gas_used: vm_result.gas_used,
-			})
+			MoveModule::rpc_estimate_gas_execute_script(transaction_bc)
 		}
 
-		// Get module binary by it's Substrate address & name.
-		fn get_module(address: String, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
-
-			let bs58 = Public::from_ss58check(&address).map_err(|e| {
-				format!("runtime error in get_module: {:?}", e)
-			})?;
-
-			MoveModule::get_module(&bs58.into(), &name)
+		fn get_module(account: AccountId, name: String) -> Result<Option<Vec<u8>>, Vec<u8>> {
+			MoveModule::rpc_get_module(account, name)
 		}
 
-		// Get module ABI by it's Substrate address & name.
-		fn get_module_abi(address: String, name: String) -> Result<Option<ModuleAbi>, Vec<u8>> {
-			let bs58 = Public::from_ss58check(&address).map_err(|e| {
-				format!("runtime error in get_module: {:?}", e)
-			})?;
-
-			MoveModule::get_module_abi(&bs58.into(), &name)
+		fn get_module_abi(account: AccountId, name: String) -> Result<Option<ModuleAbi>, Vec<u8>> {
+			MoveModule::rpc_get_module_abi(account, name)
 		}
 
-		// Get resource.
 		fn get_resource(
 			account: AccountId,
 			tag: Vec<u8>,
 		) -> Result<Option<Vec<u8>>, Vec<u8>> {
-			MoveModule::get_resource(&account, tag.as_slice())
+			MoveModule::rpc_get_resource(account, tag)
 		}
 	}
 
