@@ -20,7 +20,7 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, DispatchError, MultiSignature,
 };
-use sp_std::prelude::*;
+use sp_std::{prelude::*, vec::Vec};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -290,14 +290,13 @@ parameter_types! {
 	pub const MaxScriptSigners: u32 = 8;
 }
 
-/// Configure the pallet-move.
 impl pallet_move::Config for Runtime {
 	type Currency = Balances;
 	type CurrencyBalance = Balance;
 	type MultisigReqExpireTime = MultisigReqExpireTime;
 	type MaxScriptSigners = MaxScriptSigners;
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = pallet_move::weights::WeightInfo<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -396,7 +395,7 @@ impl_runtime_apis! {
 			Runtime::metadata_at_version(version)
 		}
 
-		fn metadata_versions() -> sp_std::vec::Vec<u32> {
+		fn metadata_versions() -> Vec<u32> {
 			Runtime::metadata_versions()
 		}
 	}
