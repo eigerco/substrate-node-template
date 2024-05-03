@@ -296,7 +296,7 @@ impl pallet_move::Config for Runtime {
 	type MultisigReqExpireTime = MultisigReqExpireTime;
 	type MaxScriptSigners = MaxScriptSigners;
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_move::weights::WeightInfo<Runtime>;
+	type WeightInfo = pallet_move::weights::SubstrateWeight<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
