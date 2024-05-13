@@ -496,14 +496,6 @@ impl_runtime_apis! {
 	}
 
 	impl pallet_move::api::MoveApi<Block, AccountId> for Runtime {
-		fn gas_to_weight(gas_limit: u64) -> Weight {
-			MoveModule::rpc_gas_to_weight(gas_limit)
-		}
-
-		fn weight_to_gas(weight: Weight) -> u64 {
-			MoveModule::rpc_weight_to_gas(weight)
-		}
-
 		fn estimate_gas_publish_module(account: AccountId, bytecode: Vec<u8>) -> Result<MoveApiEstimation, DispatchError> {
 			MoveModule::rpc_estimate_gas_publish_module(&account, bytecode)
 		}
