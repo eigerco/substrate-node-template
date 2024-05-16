@@ -8,8 +8,8 @@
 use std::sync::Arc;
 
 use jsonrpsee::RpcModule;
-use node_template_runtime::{opaque::Block, AccountId, Balance, Nonce};
 use sc_transaction_pool_api::TransactionPool;
+use solochain_template_runtime::{opaque::Block, AccountId, Balance, Nonce};
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
@@ -36,8 +36,8 @@ where
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_move_rpc::MoveRuntimeApi<Block, AccountId>,
+	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + 'static,
 {
 	use pallet_move_rpc::{MoveApiServer, MovePallet};
@@ -49,13 +49,19 @@ where
 
 	module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
+	module.merge(MovePallet::new(client.clone()).into_rpc())?;
 
 	// Extend this RPC with a custom API by using the following syntax.
 	// `YourRpcStruct` should have a reference to a client, which is needed
 	// to call into the runtime.
 	// `module.merge(YourRpcTrait::into_rpc(YourRpcStruct::new(ReferenceToClient, ...)))?;`
 
-	module.merge(MovePallet::new(client.clone()).into_rpc())?;
+	// You probably want to enable the `rpc v2 chainSpec` API as well
+	//
+	// let chain_name = chain_spec.name().to_string();
+	// let genesis_hash = client.block_hash(0).ok().flatten().expect("Genesis block exists; qed");
+	// let properties = chain_spec.properties();
+	// module.merge(ChainSpec::new(chain_name, genesis_hash, properties).into_rpc())?;
 
 	Ok(module)
 }
