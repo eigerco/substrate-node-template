@@ -61,8 +61,10 @@ substrate-frame-rpc-system = { git = "https://github.com/paritytech/polkadot-sdk
 # These dependencies are used for runtime benchmarking
 frame-benchmarking-cli = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "v1.12.0-rc3" }
 
+# Move Pallet
+pallet-move-rpc = { git = "https://github.com/eigerco/pallet-move" }
+
 # Local Dependencies
-pallet-move-rpc = { path = "../../pallet-move/rpc" }
 solochain-template-runtime = { path = "../runtime" }
 
 [build-dependencies]

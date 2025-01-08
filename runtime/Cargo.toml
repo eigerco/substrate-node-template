@@ -72,8 +72,10 @@ pallet-transaction-payment-rpc-runtime-api = {  git = "https://github.com/parity
 frame-benchmarking = {  git = "https://github.com/paritytech/polkadot-sdk.git", tag = "v1.12.0-rc3", default-features = false, optional = true }
 frame-system-benchmarking = {  git = "https://github.com/paritytech/polkadot-sdk.git", tag = "v1.12.0-rc3", default-features = false, optional = true }
 
+# Move Pallet
+pallet-move = { git = "https://github.com/eigerco/pallet-move", default-features = false }
+
 # Local pallet dependencies.
-pallet-move = { path = "../../pallet-move/pallet", default-features = false }
 pallet-template = { path = "../pallets/template", default-features = false }
 
 [build-dependencies]
